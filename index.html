@@ -46,6 +46,13 @@ input[type=range]{width:100%;accent-color:var(--ac)}
 a.btn{display:inline-block;text-decoration:none;border:1px solid var(--bd);background:var(--bg);color:var(--tx);border-radius:10px;padding:8px 12px;font-size:14px;margin:4px 6px 4px 0}
 textarea{width:100%;min-height:90px;font:inherit;font-size:15px;padding:10px;border:1px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--tx)}
 .step{display:flex;gap:8px;margin:8px 0;font-size:15px}
+.body{display:grid;grid-template-columns:minmax(150px,210px) 1fr;gap:16px;align-items:start}
+.pt{fill:var(--bd);stroke:var(--mu);stroke-width:1.5;cursor:pointer}
+.pt.ok{fill:var(--okb);stroke:var(--ok)}.pt.warn{fill:var(--wnb);stroke:var(--wn)}.pt.bad{fill:var(--badb);stroke:var(--bad)}.pt.sel{stroke-width:4}
+.ind{border-top:1px solid var(--bd);padding:8px 0;font-size:14px}
+.mi{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.mi label{font-size:13px;margin:0 0 2px}.mi input{width:100%;padding:8px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:inherit}
+@media(max-width:700px){.body{grid-template-columns:1fr}}
 #ov{position:fixed;inset:0;background:rgba(0,0,0,.78);display:none;place-items:center;z-index:50;padding:20px}
 #ov.on{display:grid}
 .box{background:var(--card);color:var(--tx);border:3px solid var(--bad);border-radius:16px;padding:20px;max-width:420px;width:100%;text-align:center}
@@ -64,6 +71,23 @@ textarea{width:100%;min-height:90px;font:inherit;font-size:15px;padding:10px;bor
 </section>
 
 <div id="grid" class="grid"></div>
+
+<section class="card full"><h2>Body map</h2>
+<p class="dv">Tap a body part to see what it does, its current status, and why and how each reading is measured in space.</p>
+<div class="body"><svg viewBox="0 0 200 340" role="group" aria-label="Human body. Tap a part." style="width:100%;max-width:210px;margin:auto;display:block">
+<circle class="pt" data-p="whole" cx="100" cy="40" r="26"/><rect class="pt" data-p="whole" x="62" y="70" width="76" height="120" rx="28"/>
+<rect class="pt" data-p="bones" x="40" y="78" width="18" height="108" rx="9"/><rect class="pt" data-p="bones" x="142" y="78" width="18" height="108" rx="9"/>
+<rect class="pt" data-p="bones" x="68" y="190" width="30" height="135" rx="12"/><rect class="pt" data-p="bones" x="102" y="190" width="30" height="135" rx="12"/>
+<ellipse class="pt" data-p="brain" cx="100" cy="38" rx="16" ry="14"/>
+<ellipse class="pt" data-p="lungs" cx="82" cy="102" rx="12" ry="22"/><ellipse class="pt" data-p="lungs" cx="118" cy="102" rx="12" ry="22"/>
+<circle class="pt" data-p="heart" cx="104" cy="112" r="12"/><rect class="pt" data-p="gut" x="78" y="140" width="44" height="40" rx="14"/></svg>
+<div id="pinfo" aria-live="polite"></div></div></section>
+
+<section class="card full"><h2>Enter your measurements</h2>
+<p class="dv">Measured something? Type it in and SitaRam checks it. Leave a box empty to keep its current value. Press the button again later to add more points to the trend.</p>
+<div id="mi" class="mi"></div>
+<div class="btns"><button id="mgo" class="primary">Use my readings</button><button id="msim">Back to simulation</button></div>
+<div id="mmsg" class="dv" aria-live="polite"></div></section>
 
 <div class="two">
  <section class="card"><h2>Daily check-in</h2><p class="dv">Your own report matters as much as sensors. Move the sliders to match how you feel.</p>
@@ -110,22 +134,25 @@ const V=[
 {id:'temp',n:'Body temperature',u:'\u00b0C',r:[36.1,37.2],w:[35.8,37.9],b:36.7,dp:1,nz:.06,k:'Immune system',a:'Temperature is raised. Drink fluids, rest, keep distance from crewmates, and report to ground medical if it lasts more than 12 hours.'},
 {id:'ex',n:'Exercise today',u:'min',r:[90,400],w:[45,400],b:100,dp:0,nz:1.5,k:'Bones & muscles',a:'Exercise is below the daily target. Add a resistance or treadmill session to protect your bones and muscles.'},
 {id:'rad',n:'Radiation rate',u:'\u00b5Sv/h',r:[0,35],w:[0,60],b:24,dp:0,nz:2,k:'Radiation',a:'Radiation is high. Move to the shielded shelter area, limit time in exposed modules, and notify ground.'},
-{id:'sl',n:'Sleep last night',u:'h',r:[7,12],w:[5.5,12],b:7.4,dp:1,nz:.08,k:'Mind & behavior',a:'Sleep was short. Protect a full sleep period tonight, dim the lights, and hand off critical tasks if you can.'}];
-const S={normal:[68,98,36.7,100,24,7.4],stress:[96,97,36.9,40,25,5],rad:[78,97,36.8,90,72,6.5],ill:[104,93,37.8,50,25,5.8]};
+{id:'sl',n:'Sleep last night',u:'h',r:[7,12],w:[5.5,12],b:7.4,dp:1,nz:.08,k:'Mind & behavior',a:'Sleep was short. Protect a full sleep period tonight, dim the lights, and hand off critical tasks if you can.'},
+{id:'bp',n:'Blood pressure',u:'mmHg',r:[90,129],w:[80,159],b:118,dp:0,nz:1.5,k:'Heart & lungs',a:'Blood pressure is outside the usual range. Sit and rest for 5 minutes, then measure again on the same arm. If it stays abnormal or you feel dizzy, contact the flight surgeon.'},
+{id:'glu',n:'Blood sugar',u:'mg/dL',r:[70,140],w:[54,180],b:95,dp:0,nz:2.5,k:'Nutrition',a:'Blood sugar is out of range. If it is low with shakiness or sweating, take fast sugar from the food supply and recheck in 15 minutes. If it is high, drink water and report to the flight surgeon.'}];
+const S={normal:[68,98,36.7,100,24,7.4,118,95],stress:[96,97,36.9,40,25,5,138,112],rad:[78,97,36.8,90,72,6.5,122,98],ill:[104,93,37.8,50,25,5.8,106,150]},DT={normal:76,stress:88,rad:78,ill:66};let D=76;
 const H={normal:'All indicators normal',stress:'Stress is building. Act on the flags below',rad:'Radiation alert. Protect yourself first',ill:'Signs of illness. Rest and report'};
 let sc='normal',paused=false,cur=V.map(v=>v.b),hist=V.map(v=>Array(30).fill(v.b));
-const st=(v,x)=>x>=v.r[0]&&x<=v.r[1]?'ok':x>=v.w[0]&&x<=v.w[1]?'warn':'bad';
+const st0=(v,x)=>x>=v.r[0]&&x<=v.r[1]?'ok':x>=v.w[0]&&x<=v.w[1]?'warn':'bad',DV={r:[60,84],w:[50,99]};
+const st=(v,x)=>v.id=='bp'?worst([st0(v,x),st0(DV,D)]):st0(v,x);
 const lbl={ok:'Normal',warn:'Watch',bad:'Act now'};
 const worst=a=>a.includes('bad')?'bad':a.includes('warn')?'warn':'ok';
 function mind(){const m=+$('mood').value,s=+$('stress').value,f=+$('fat').value,t=(5-m)+(s-1)+(f-1);return t>=8?'bad':t>=5?'warn':'ok'}
 function spark(h,v){const lo=Math.min(...h,v.b),hi=Math.max(...h,v.b),d=hi-lo||1,y=x=>32-((x-lo)/d)*28;
  const p=h.map((x,i)=>(i*100/29).toFixed(1)+','+y(x).toFixed(1)).join(' ');
  return `<svg class="sp" viewBox="0 0 100 36" preserveAspectRatio="none" aria-hidden="true"><line x1="0" x2="100" y1="${y(v.b)}" y2="${y(v.b)}" stroke="var(--bd)" stroke-dasharray="3 3" vector-effect="non-scaling-stroke"/><polyline points="${p}" fill="none" stroke="var(--ac)" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>`}
-function render(){
+function render0(){
  const ss=V.map((v,i)=>st(v,+cur[i].toFixed(v.dp))),ms=mind();
  $('grid').innerHTML=V.map((v,i)=>{const x=cur[i],d=x-v.b,sg=d>0?'+':'';
   return `<div class="card ${ss[i]}"><div class="row"><span>${v.n}</span><span class="chip ${ss[i]}">${lbl[ss[i]]}</span></div>
-  <div class="v">${x.toFixed(v.dp)} <span>${v.u}</span></div><div class="dv">${sg}${d.toFixed(v.dp)} vs your baseline</div>${spark(hist[i],v)}</div>`}).join('');
+  <div class="v">${v.id=='bp'?x.toFixed(0)+'/'+D.toFixed(0):x.toFixed(v.dp)} <span>${v.u}</span></div><div class="dv">${sg}${d.toFixed(v.dp)} vs your baseline</div>${spark(hist[i],v)}</div>`}).join('');
  let sc2=100;[...ss,ms].forEach(s=>sc2-=s=='bad'?18:s=='warn'?7:0);sc2=Math.max(0,sc2);
  const all=[...ss,ms],ov=worst(all),col=ov=='ok'?'var(--ok)':ov=='warn'?'var(--wn)':'var(--bad)';
  $('score').textContent=sc2;$('arc').style.stroke=col;$('arc').setAttribute('stroke-dashoffset',490*(1-sc2/100));
@@ -136,7 +163,7 @@ function render(){
   (ms!='ok'?`<div class="act ${ms}"><b>Mood and stress:</b> Take a break, call family or a friend, write a short journal entry, and talk to the crew or the ground psychologist.</div>`:'');
  $('acts').innerHTML=acts||'<div class="act ok">Everything looks good. Keep your exercise, sleep, and check-ins on schedule.</div>';
 }
-function tick(){if(paused)return;const t=S[sc];V.forEach((v,i)=>{cur[i]+=(t[i]-cur[i])*.25+(Math.random()-.5)*2*v.nz;if(v.id=='spo2')cur[i]=Math.min(100,cur[i]);hist[i].push(cur[i]);hist[i].shift()});render()}
+function tick(){if(paused)return;const t=S[sc];V.forEach((v,i)=>{cur[i]+=(t[i]-cur[i])*.25+(Math.random()-.5)*2*v.nz;if(v.id=='spo2')cur[i]=Math.min(100,cur[i]);hist[i].push(cur[i]);hist[i].shift()});D+=(DT[sc]-D)*.25+(Math.random()-.5)*2;render()}
 document.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{sc=b.dataset.s;document.querySelectorAll('[data-s]').forEach(x=>x.setAttribute('aria-pressed',x==b));
  if(sc=='stress'){$('mood').value=2;$('stress').value=5;$('fat').value=4}else if(sc=='normal'){$('mood').value=4;$('stress').value=2;$('fat').value=2}else if(sc=='ill'){$('mood').value=3;$('stress').value=3;$('fat').value=5}
  sync();tick()});
@@ -231,5 +258,34 @@ $('rxb').onclick=async()=>{const f=$('rxf').files[0],o=$('rxo');
  try{await loadT();const r=await Tesseract.recognize(f,'eng');$('rxt').value=r.data.text.trim();o.innerHTML='<div class="act ok">Done. Check the text in the box, fix any mistakes, then tap Make my schedule.</div>'}
  catch(e){o.innerHTML='<div class="act warn">I couldn\u2019t read the photo here (this needs an internet connection). Type the prescription in the box and tap Make my schedule.</div>'}};
 $('rxm').onclick=showRx;
+const INFO={
+hr:{n:'Heart rate',w:'Shows how hard your heart is working. A fast resting rate can signal stress, dehydration, or illness.',h:'Use a wrist or chest sensor, or count your pulse for 30 seconds at rest and double it.',s:'Fluids shift toward the head in microgravity and the heart adapts, so heart rate and rhythm can change.'},
+bp:{n:'Blood pressure',w:'High or low pressure strains the heart and brain and can cause dizziness or fainting.',h:'Sit calmly for 5 minutes and use an automatic arm cuff.',s:'Fluid shifts and long-term adaptation can change blood pressure, especially when gravity returns.'},
+spo2:{n:'Blood oxygen',w:'Shows how much oxygen your blood is carrying.',h:'Clip a pulse oximeter on a fingertip and stay still for 30 seconds.',s:'Cabin air quality and CO\u2082 build-up in a closed environment can affect breathing.'},
+glu:{n:'Blood sugar',w:'Shows how well your body turns food into energy. Changes can point to poor nutrition, stress, or illness.',h:'Use a fingertip glucose meter and a test strip, ideally before a meal.',s:'Stress, disturbed sleep, and changed eating patterns on long missions can shift blood sugar.'},
+temp:{n:'Body temperature',w:'A raised temperature is an early sign of infection.',h:'Use an ear or forehead thermometer.',s:'Confinement and stress can weaken the immune system, and germs spread easily in a closed cabin.'},
+rad:{n:'Radiation rate',w:'Radiation exposure raises long-term cancer and other health risks.',h:'Read the onboard radiation dosimeter.',s:'Beyond the protection of Earth\u2019s magnetic field, radiation is stronger, and solar storms can make it spike.'},
+ex:{n:'Exercise today',w:'Daily exercise protects your bones and muscles.',h:'Log the minutes of resistance and cardio training you finish.',s:'Without gravity, bones and muscles weaken fast, which is why astronauts exercise about two hours a day.'},
+sl:{n:'Sleep',w:'Sleep protects your mood, memory, and reaction time.',h:'Log the hours from a sleep tracker or your own record.',s:'Light cycles, noise, and work schedules disturb sleep in orbit, and short sleep raises the risk of mistakes.'},
+mind:{n:'Mood, stress and fatigue',w:'They show how isolation and confinement are affecting you.',h:'Use the daily check-in sliders. Honest answers matter more than any sensor here.',s:'Isolation, confinement, and distance from Earth can strain mental health on long missions.'}};
+const PARTS={whole:{n:'Whole body',f:'Your immune defense and your exposure to the space environment.',ids:['temp','rad']},brain:{n:'Brain and mind',f:'Controls thinking, mood, and sleep.',ids:['sl','mind']},heart:{n:'Heart',f:'Pumps blood around your body.',ids:['hr','bp']},lungs:{n:'Lungs',f:'Bring oxygen into your blood.',ids:['spo2']},gut:{n:'Digestion and metabolism',f:'Turns food into energy and manages blood sugar.',ids:['glu']},bones:{n:'Bones and muscles',f:'Support your body and let you move.',ids:['ex']}};
+let selP='heart';
+const sid=id=>{if(id=='mind')return mind();const i=V.findIndex(v=>v.id==id);return st(V[i],+cur[i].toFixed(V[i].dp))};
+function paint(){
+ document.querySelectorAll('[data-p]').forEach(el=>{const p=el.dataset.p;el.setAttribute('class','pt '+worst(PARTS[p].ids.map(sid))+(p==selP?' sel':''))});
+ const P=PARTS[selP];
+ $('pinfo').innerHTML=`<h2>${P.n}</h2><p class="dv">${P.f}</p>`+P.ids.map(id=>{const i=V.findIndex(v=>v.id==id),I=INFO[id],s=sid(id);
+  const val=id=='mind'?'mood '+$('mood').value+'/5, stress '+$('stress').value+'/5, fatigue '+$('fat').value+'/5':id=='bp'?cur[i].toFixed(0)+'/'+D.toFixed(0)+' mmHg':cur[i].toFixed(V[i].dp)+' '+V[i].u;
+  return `<div class="ind"><div class="row"><b>${I.n}: ${val}</b><span class="chip ${s}">${lbl[s]}</span></div><div><b>Why measure it:</b> ${I.w}</div><div><b>How to measure:</b> ${I.h}</div><div><b>In space:</b> ${I.s}</div></div>`}).join('')}
+function render(){render0();paint()}
+document.querySelectorAll('[data-p]').forEach(el=>{el.setAttribute('tabindex',0);el.setAttribute('role','button');el.setAttribute('aria-label',PARTS[el.dataset.p].n);el.onclick=()=>{selP=el.dataset.p;paint()};el.onkeydown=e=>{if(e.key=='Enter'||e.key==' '){e.preventDefault();el.onclick()}}});
+const MI=[['hr','Heart rate (bpm)',1],['spo2','Blood oxygen (%)',1],['temp','Temperature (\u00b0C)',.1],['bps','Blood pressure, top (mmHg)',1],['bpd','Blood pressure, bottom (mmHg)',1],['glu','Blood sugar (mg/dL)',1],['sl','Sleep last night (h)',.1],['ex','Exercise today (min)',1],['rad','Radiation (\u00b5Sv/h)',1]];
+$('mi').innerHTML=MI.map(m=>`<div><label for="m_${m[0]}">${m[1]}</label><input id="m_${m[0]}" type="number" inputmode="decimal" step="${m[2]}" min="0"></div>`).join('');
+$('mgo').onclick=()=>{let n=0;MI.forEach(m=>{const x=parseFloat($('m_'+m[0]).value);if(isNaN(x)||x<0)return;n++;
+ if(m[0]=='bpd')D=x;else{const id=m[0]=='bps'?'bp':m[0],i=V.findIndex(v=>v.id==id),y=id=='spo2'?Math.min(100,x):x;cur[i]=y;hist[i].push(y);hist[i].shift()}});
+ if(!n){$('mmsg').textContent='Type at least one reading first.';return}
+ paused=true;$('pause').setAttribute('aria-pressed',true);$('pause').textContent='Resume';
+ $('mmsg').textContent='Showing your own readings ('+n+' entered). The live simulation is paused.';render()};
+$('msim').onclick=()=>{paused=false;$('pause').setAttribute('aria-pressed',false);$('pause').textContent='Pause';$('mmsg').textContent='Simulation resumed.'};
 sync();setInterval(tick,1500);
 </script></body></html>
