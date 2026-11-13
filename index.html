@@ -52,6 +52,7 @@ textarea{width:100%;min-height:90px;font:inherit;font-size:15px;padding:10px;bor
 .ind{border-top:1px solid var(--bd);padding:8px 0;font-size:14px}
 .mi{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
 .mi label{font-size:13px;margin:0 0 2px}.mi input{width:100%;padding:8px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:inherit}
+.bg{border:1px solid var(--bd);border-radius:12px;padding:10px;font-size:13px;opacity:.6}.bg.on{opacity:1;border-color:var(--ok);background:var(--okb)}
 @media(max-width:700px){.body{grid-template-columns:1fr}}
 #ov{position:fixed;inset:0;background:rgba(0,0,0,.78);display:none;place-items:center;z-index:50;padding:20px}
 #ov.on{display:grid}
@@ -62,6 +63,7 @@ textarea{width:100%;min-height:90px;font:inherit;font-size:15px;padding:10px;bor
 <h1>SitaRam</h1>
 <p class="sub">A self-check health monitor for astronauts on long missions. Track your body and mind, spot changes early, and know what to do next.</p>
 
+<div id="dueb" class="act warn" style="display:none;margin-bottom:10px" role="status"></div>
 <section class="hero" aria-live="polite">
  <div class="ring"><svg width="180" height="180" viewBox="0 0 180 180"><circle cx="90" cy="90" r="78" fill="none" stroke="var(--bd)" stroke-width="14"/><circle id="arc" cx="90" cy="90" r="78" fill="none" stroke-width="14" stroke-linecap="round" stroke-dasharray="490" stroke-dashoffset="0"/></svg><b><span id="score">100</span><small>health score</small></b></div>
  <div><h2 id="headline">All indicators normal</h2><div id="risks" class="risks"></div>
@@ -74,20 +76,31 @@ textarea{width:100%;min-height:90px;font:inherit;font-size:15px;padding:10px;bor
 
 <section class="card full"><h2>Body map</h2>
 <p class="dv">Tap a body part to see what it does, its current status, and why and how each reading is measured in space.</p>
-<div class="body"><svg viewBox="0 0 200 340" role="group" aria-label="Human body. Tap a part." style="width:100%;max-width:210px;margin:auto;display:block">
+<div class="body"><svg viewBox="0 0 200 350" role="group" aria-label="Human body. Tap a part." style="width:100%;max-width:210px;margin:auto;display:block">
 <circle class="pt" data-p="whole" cx="100" cy="40" r="26"/><rect class="pt" data-p="whole" x="62" y="70" width="76" height="120" rx="28"/>
-<rect class="pt" data-p="bones" x="40" y="78" width="18" height="108" rx="9"/><rect class="pt" data-p="bones" x="142" y="78" width="18" height="108" rx="9"/>
-<rect class="pt" data-p="bones" x="68" y="190" width="30" height="135" rx="12"/><rect class="pt" data-p="bones" x="102" y="190" width="30" height="135" rx="12"/>
-<ellipse class="pt" data-p="brain" cx="100" cy="38" rx="16" ry="14"/>
+<rect class="pt" data-p="arms" x="40" y="78" width="18" height="108" rx="9"/><rect class="pt" data-p="arms" x="142" y="78" width="18" height="108" rx="9"/>
+<rect class="pt" data-p="legs" x="68" y="198" width="30" height="128" rx="12"/><rect class="pt" data-p="legs" x="102" y="198" width="30" height="128" rx="12"/>
+<rect class="pt" data-p="spine" x="70" y="182" width="60" height="16" rx="8"/>
+<ellipse class="pt" data-p="brain" cx="100" cy="26" rx="15" ry="10"/><circle class="pt" data-p="eyes" cx="91" cy="44" r="5"/><circle class="pt" data-p="eyes" cx="109" cy="44" r="5"/>
 <ellipse class="pt" data-p="lungs" cx="82" cy="102" rx="12" ry="22"/><ellipse class="pt" data-p="lungs" cx="118" cy="102" rx="12" ry="22"/>
-<circle class="pt" data-p="heart" cx="104" cy="112" r="12"/><rect class="pt" data-p="gut" x="78" y="140" width="44" height="40" rx="14"/></svg>
-<div id="pinfo" aria-live="polite"></div></div></section>
+<circle class="pt" data-p="heart" cx="104" cy="112" r="12"/><rect class="pt" data-p="gut" x="78" y="140" width="44" height="36" rx="14"/><circle class="pt" data-p="hands" cx="49" cy="196" r="9"/><circle class="pt" data-p="hands" cx="151" cy="196" r="9"/><ellipse class="pt" data-p="feet" cx="83" cy="335" rx="17" ry="8"/><ellipse class="pt" data-p="feet" cx="117" cy="335" rx="17" ry="8"/></svg>
+<div><div id="subs"></div><div id="sinfo"></div><div id="pinfo" aria-live="polite"></div></div></div></section>
 
 <section class="card full"><h2>Enter your measurements</h2>
 <p class="dv">Measured something? Type it in and SitaRam checks it. Leave a box empty to keep its current value. Press the button again later to add more points to the trend.</p>
 <div id="mi" class="mi"></div>
 <div class="btns"><button id="mgo" class="primary">Use my readings</button><button id="msim">Back to simulation</button></div>
 <div id="mmsg" class="dv" aria-live="polite"></div></section>
+
+<section class="card full"><h2>Upload a CSV of readings</h2>
+<p class="dv">Have data from a wearable or a lab? Upload a CSV with columns such as hr, spo2, temp, sys, dia, glucose, sleep, exercise, radiation. Each row is one point in time.</p>
+<input id="csvf" type="file" accept=".csv,text/csv"><div class="btns"><button id="csvb" class="primary">Load CSV</button><button id="csvs">Download a sample CSV</button></div><div id="csvm" class="dv" aria-live="polite"></div></section>
+
+<section class="card full"><h2>Mission environment</h2><p class="dv">Choose where you are. The tips change with the place.</p><div class="btns" id="envb" role="group" aria-label="Choose environment"></div><div id="envt"></div></section>
+
+<section class="card full"><h2>Measurement routine</h2><p class="dv">SitaRam reminds you when a measurement is due. <button id="ff" aria-pressed="false">Fast-forward demo</button></p><div id="rt"></div></section>
+
+<section class="card full"><h2>Health badges <span id="pts" class="chip ok"></span></h2><div id="bd" class="mi"></div></section>
 
 <div class="two">
  <section class="card"><h2>Daily check-in</h2><p class="dv">Your own report matters as much as sensors. Move the sliders to match how you feel.</p>
@@ -268,17 +281,28 @@ rad:{n:'Radiation rate',w:'Radiation exposure raises long-term cancer and other 
 ex:{n:'Exercise today',w:'Daily exercise protects your bones and muscles.',h:'Log the minutes of resistance and cardio training you finish.',s:'Without gravity, bones and muscles weaken fast, which is why astronauts exercise about two hours a day.'},
 sl:{n:'Sleep',w:'Sleep protects your mood, memory, and reaction time.',h:'Log the hours from a sleep tracker or your own record.',s:'Light cycles, noise, and work schedules disturb sleep in orbit, and short sleep raises the risk of mistakes.'},
 mind:{n:'Mood, stress and fatigue',w:'They show how isolation and confinement are affecting you.',h:'Use the daily check-in sliders. Honest answers matter more than any sensor here.',s:'Isolation, confinement, and distance from Earth can strain mental health on long missions.'}};
-const PARTS={whole:{n:'Whole body',f:'Your immune defense and your exposure to the space environment.',ids:['temp','rad']},brain:{n:'Brain and mind',f:'Controls thinking, mood, and sleep.',ids:['sl','mind']},heart:{n:'Heart',f:'Pumps blood around your body.',ids:['hr','bp']},lungs:{n:'Lungs',f:'Bring oxygen into your blood.',ids:['spo2']},gut:{n:'Digestion and metabolism',f:'Turns food into energy and manages blood sugar.',ids:['glu']},bones:{n:'Bones and muscles',f:'Support your body and let you move.',ids:['ex']}};
+const PARTS={
+whole:{n:'Whole body',f:'Your immune defense and your exposure to the space environment.',sp:'Confinement and stress can weaken immunity, and radiation reaches every organ.',tip:'Keep the cabin clean, sleep well, and shelter during radiation events.',ids:['temp','rad']},
+brain:{n:'Brain and mind',f:'Controls thinking, mood, and sleep.',sp:'Isolation, confinement, and disturbed sleep strain mood and concentration.',tip:'Keep a sleep routine, stay in touch with family and crew, and use the daily check-in.',ids:['sl','mind']},
+eyes:{n:'Eyes',f:'Let you see and judge distance.',sp:'Fluid shifts toward the head can change eye shape and pressure, causing blurry vision on long missions.',tip:'Report any new blurry vision. Use the symptom check to describe it.',ids:[]},
+heart:{n:'Heart',f:'Pumps blood around your body.',sp:'The heart adapts to microgravity, and heart rate and blood pressure can change.',tip:'Exercise daily, stay hydrated, and measure heart rate and blood pressure on schedule.',ids:['hr','bp']},
+lungs:{n:'Lungs',f:'Bring oxygen into your blood.',sp:'Air quality, CO\u2082, and fine dust in a closed cabin can affect breathing.',tip:'Check the cabin air if you feel breathless, and measure blood oxygen.',ids:['spo2']},
+gut:{n:'Digestion and metabolism',f:'Turns food into energy and manages blood sugar.',sp:'Space motion sickness, stress, and food changes can affect appetite and blood sugar.',tip:'Eat regular balanced meals, drink water, and measure blood sugar when due.',ids:['glu']},
+spine:{n:'Spine and hips',f:'Hold your body upright and carry its weight on Earth.',sp:'Without gravity the spine lengthens, which can cause back pain, and bone density falls.',tip:'Do resistance exercise, stretch gently, and report back pain that persists.',ids:['ex']},
+arms:{n:'Arms and muscles',f:'Let you lift, reach, and work.',sp:'Muscles weaken quickly when gravity does not load them.',tip:'Use resistance bands or the exercise device every day.',ids:['ex']},
+legs:{n:'Legs and bones',f:'Carry your weight and keep bones strong on Earth.',sp:'Leg bones lose density in microgravity, one of the main long-mission risks.',tip:'Do treadmill and resistance training, and follow your doctor\u2019s advice on calcium and vitamin D.',ids:['ex']}};
+PARTS.hands={n:'Hands and fingers',f:'Give grip, touch, and fine control.',sp:'Hands do most of the work in orbit, and their skin thins and cracks easily.',tip:'Moisturise, stretch between tasks, and report any injury.',ids:[]};
+PARTS.feet={n:'Feet',f:'Carry your weight on Earth and steady you.',sp:'Feet carry no weight in microgravity, so skin and bones change.',tip:'Keep feet clean and dry, and do weight-bearing exercise.',ids:[]};
 let selP='heart';
 const sid=id=>{if(id=='mind')return mind();const i=V.findIndex(v=>v.id==id);return st(V[i],+cur[i].toFixed(V[i].dp))};
 function paint(){
  document.querySelectorAll('[data-p]').forEach(el=>{const p=el.dataset.p;el.setAttribute('class','pt '+worst(PARTS[p].ids.map(sid))+(p==selP?' sel':''))});
  const P=PARTS[selP];
- $('pinfo').innerHTML=`<h2>${P.n}</h2><p class="dv">${P.f}</p>`+P.ids.map(id=>{const i=V.findIndex(v=>v.id==id),I=INFO[id],s=sid(id);
+ $('pinfo').innerHTML=`<h2>${P.n}</h2><p class="dv">${P.f}</p><div class="ind"><b>Space effect:</b> ${P.sp}</div><div class="ind"><b>What helps:</b> ${P.tip}</div>`+(P.ids.length?'':'<div class="ind dv">No live sensor for this part. Use the symptom check or the check-in to report how it feels.</div>')+P.ids.map(id=>{const i=V.findIndex(v=>v.id==id),I=INFO[id],s=sid(id);
   const val=id=='mind'?'mood '+$('mood').value+'/5, stress '+$('stress').value+'/5, fatigue '+$('fat').value+'/5':id=='bp'?cur[i].toFixed(0)+'/'+D.toFixed(0)+' mmHg':cur[i].toFixed(V[i].dp)+' '+V[i].u;
   return `<div class="ind"><div class="row"><b>${I.n}: ${val}</b><span class="chip ${s}">${lbl[s]}</span></div><div><b>Why measure it:</b> ${I.w}</div><div><b>How to measure:</b> ${I.h}</div><div><b>In space:</b> ${I.s}</div></div>`}).join('')}
-function render(){render0();paint()}
-document.querySelectorAll('[data-p]').forEach(el=>{el.setAttribute('tabindex',0);el.setAttribute('role','button');el.setAttribute('aria-label',PARTS[el.dataset.p].n);el.onclick=()=>{selP=el.dataset.p;paint()};el.onkeydown=e=>{if(e.key=='Enter'||e.key==' '){e.preventDefault();el.onclick()}}});
+function render(){render0();drift();paint();streakChk()}
+document.querySelectorAll('[data-p]').forEach(el=>{el.setAttribute('tabindex',0);el.setAttribute('role','button');el.setAttribute('aria-label',PARTS[el.dataset.p].n);el.onclick=()=>selectPart(el.dataset.p);el.onkeydown=e=>{if(e.key=='Enter'||e.key==' '){e.preventDefault();el.onclick()}}});
 const MI=[['hr','Heart rate (bpm)',1],['spo2','Blood oxygen (%)',1],['temp','Temperature (\u00b0C)',.1],['bps','Blood pressure, top (mmHg)',1],['bpd','Blood pressure, bottom (mmHg)',1],['glu','Blood sugar (mg/dL)',1],['sl','Sleep last night (h)',.1],['ex','Exercise today (min)',1],['rad','Radiation (\u00b5Sv/h)',1]];
 $('mi').innerHTML=MI.map(m=>`<div><label for="m_${m[0]}">${m[1]}</label><input id="m_${m[0]}" type="number" inputmode="decimal" step="${m[2]}" min="0"></div>`).join('');
 $('mgo').onclick=()=>{let n=0;MI.forEach(m=>{const x=parseFloat($('m_'+m[0]).value);if(isNaN(x)||x<0)return;n++;
@@ -287,5 +311,89 @@ $('mgo').onclick=()=>{let n=0;MI.forEach(m=>{const x=parseFloat($('m_'+m[0]).val
  paused=true;$('pause').setAttribute('aria-pressed',true);$('pause').textContent='Resume';
  $('mmsg').textContent='Showing your own readings ('+n+' entered). The live simulation is paused.';render()};
 $('msim').onclick=()=>{paused=false;$('pause').setAttribute('aria-pressed',false);$('pause').textContent='Pause';$('mmsg').textContent='Simulation resumed.'};
+let DR=[];
+function drift(){DR=[];V.forEach((v,i)=>{const h=hist[i],o=h.slice(0,20),m=o.reduce((a,b)=>a+b,0)/o.length,sd=Math.sqrt(o.reduce((a,b)=>a+(b-m)**2,0)/o.length),r=h.slice(-3).reduce((a,b)=>a+b,0)/3,t=Math.max(3*sd,v.nz*2.5);
+ if(Math.abs(r-m)>t){DR[i]=r>m;const c=$('grid').children[i];if(c)c.insertAdjacentHTML('beforeend',`<div class="dv" style="color:var(--wn);margin-top:4px">${r>m?'\u2191 Above':'\u2193 Below'} your usual level</div>`)}});
+ const e=V.map((v,i)=>DR[i]!==undefined&&st(v,+cur[i].toFixed(v.dp))=='ok'?`<div class="act warn"><b>Early warning, ${v.n}:</b> it is ${DR[i]?'rising':'falling'} compared with your own usual level, though still in the normal range. Measure again and watch the trend.</div>`:'').join('');
+ if(e){const a=$('acts');if(a.textContent.includes('Everything looks good'))a.innerHTML='';a.insertAdjacentHTML('beforeend',e)}}
+const GOT={},BG=[['ck','First check-in','Move a check-in slider'],['sy','Symptom scout','Run a symptom check'],['ms','Hands-on','Enter your own measurement'],['cv','Data driven','Upload a CSV'],['rx','Prescription pro','Make a schedule from a prescription'],['dr','Drill complete','Test the emergency alert'],['ex','Body explorer','Open 5 body parts'],['st','Steady hand','Stay healthy for 15 updates in a row'],['rt','On schedule','Complete an overdue measurement'],['dd','Deep diagnosis','Run a check on a single body part']];
+function drawBd(){$('bd').innerHTML=BG.map(b=>`<div class="bg ${GOT[b[0]]?'on':''}"><b>${GOT[b[0]]?'\u2605 ':''}${b[1]}</b><br>${b[2]}</div>`).join('');$('pts').textContent=Object.keys(GOT).length*10+' points'}
+function earn(id){if(!GOT[id]){GOT[id]=1;drawBd()}}
+let stk=0;function streakChk(){stk=+$('score').textContent>=85?stk+1:0;if(stk>=15)earn('st')}
+const RT=[['hr','Heart rate',4],['bp','Blood pressure',12],['glu','Blood sugar',8],['temp','Temperature',12],['sl','Sleep log',24],['ck','Mood check-in',24]];
+let vt=0,SP=1;const last={};RT.forEach(r=>last[r[0]]=0);
+const fmt=ms=>{const m=Math.round(Math.abs(ms)/6e4);return Math.floor(m/60)+'h '+m%60+'m'};
+function done(id){if(last[id]===undefined)return;if(vt-last[id]>=RT.find(r=>r[0]==id)[2]*36e5)earn('rt');last[id]=vt;drawRt()}
+function drawRt(){const due=[];$('rt').innerHTML=RT.map(r=>{const left=last[r[0]]+r[2]*36e5-vt,od=left<=0;if(od)due.push(r[1]);return `<div class="act ${od?'bad':'ok'}"><div class="row"><span><b>${r[1]}</b>: ${od?'overdue by '+fmt(left):'due in '+fmt(left)}</span><button data-d="${r[0]}">Done</button></div></div>`}).join('');
+ $('rt').querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>done(b.dataset.d));
+ const d=$('dueb');d.style.display=due.length?'block':'none';d.textContent=due.length?'Time to measure: '+due.join(', ')+'.':''}
+setInterval(()=>{vt+=SP*1000;drawRt()},1000);
+$('ff').onclick=e=>{SP=SP==1?900:1;e.target.setAttribute('aria-pressed',SP!=1);e.target.textContent=SP==1?'Fast-forward demo':'Fast-forward on (1 s = 15 min)'};
+const ENV={station:['Space station','Ground medical support is in near-constant contact, so report early.','Exercise about two hours a day with the station equipment.','If you get headaches, check CO\u2082 and air quality.'],craft:['Spacecraft (deep space)','Messages to Earth can be delayed, so rely on your own checks and the onboard medical kit.','Know where the radiation shelter area is before a solar storm.','Keep a strict sleep schedule in the artificial day.'],rover:['Rover','Space is tight: stretch and exercise in short sets.','Watch for dehydration and overheating.','Report mood changes early, because confinement is intense.'],base:['Moon or Mars base','Dust and low gravity affect lungs, eyes, and bones, so log any symptoms.','Use shielded areas during radiation events.','Plan regular exercise to protect your bones in low gravity.']};
+function setEnv(k){$('envb').innerHTML=Object.keys(ENV).map(x=>`<button data-e="${x}" aria-pressed="${x==k}">${ENV[x][0]}</button>`).join('');$('envb').querySelectorAll('button').forEach(b=>b.onclick=()=>setEnv(b.dataset.e));$('envt').innerHTML=ENV[k].slice(1).map(t=>`<div class="act">${t}</div>`).join('')}
+const AL={hr:['hr','heart rate','heart_rate','pulse'],spo2:['spo2','oxygen','o2'],temp:['temp','temperature'],bps:['sys','systolic','bp','bps'],bpd:['dia','diastolic','bpd'],glu:['glucose','glu','sugar','blood sugar'],sl:['sleep','sl'],ex:['exercise','ex'],rad:['radiation','rad']};
+$('csvs').onclick=()=>{const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent('hr,spo2,temp,sys,dia,glucose,sleep,exercise,radiation\n68,98,36.7,118,76,95,7.4,100,24\n70,98,36.7,120,77,96,7.2,100,25\n74,97,36.8,124,80,102,6.8,90,26\n80,96,37.0,130,84,110,6.2,70,28\n88,95,37.3,136,88,118,5.6,50,30\n96,94,37.6,142,92,126,5.2,40,32\n');a.download='sample_readings.csv';a.click()};
+$('csvb').onclick=async()=>{const f=$('csvf').files[0],o=$('csvm');if(!f){o.textContent='Choose a CSV file first.';return}
+ const L=(await f.text()).split(/\r?\n/).filter(x=>x.trim()),H=L[0].split(',').map(x=>x.trim().toLowerCase()),col={};
+ Object.keys(AL).forEach(k=>{const j=H.findIndex(h=>AL[k].includes(h));if(j>=0)col[k]=j});
+ if(!Object.keys(col).length){o.textContent='No known columns found. Use names like hr, spo2, temp, sys, dia, glucose, sleep, exercise, radiation.';return}
+ let n=0;L.slice(1).forEach(r=>{const c=r.split(',');let hit=false;Object.keys(col).forEach(k=>{const x=parseFloat(c[col[k]]);if(isNaN(x))return;hit=true;if(k=='bpd')D=x;else{const id=k=='bps'?'bp':k,i=V.findIndex(v=>v.id==id),y=id=='spo2'?Math.min(100,x):x;cur[i]=y;hist[i].push(y);hist[i].shift()}});if(hit)n++});
+ if(!n){o.textContent='No numeric rows found.';return}
+ paused=true;$('pause').setAttribute('aria-pressed',true);$('pause').textContent='Resume';earn('cv');
+ o.textContent='Loaded '+n+' rows ('+Object.keys(col).length+' columns matched). Showing the last row. Charts and early warnings use your whole file.';render()};
+['mood','stress','fat'].forEach(i=>$(i).addEventListener('input',()=>{earn('ck');done('ck')}));
+$('chk').addEventListener('click',()=>{if(document.querySelector('#syms input:checked'))earn('sy')});
+$('mgo').addEventListener('click',()=>{if(MI.some(m=>$('m_'+m[0]).value)){earn('ms');MI.forEach(m=>{if($('m_'+m[0]).value)done(m[0]=='bps'||m[0]=='bpd'?'bp':m[0])})}});
+$('sost').addEventListener('click',()=>earn('dr'));
+$('rxm').addEventListener('click',()=>{if($('rxt').value.trim())earn('rx')});
+const seen=new Set();document.querySelectorAll('[data-p]').forEach(el=>el.addEventListener('click',()=>{seen.add(el.dataset.p);if(seen.size>=5)earn('ex')}));
+const SUB={
+brain:[['Thinking and memory','Handles focus, memory, and reaction time.','Poor sleep and stress slow reactions and raise the risk of mistakes.','Keep a fixed sleep schedule and take short breaks from demanding tasks.',[['Trouble concentrating',1],['Sudden confusion or severe headache',3]]],
+['Mood and stress','Shapes how you feel and cope.','Isolation, confinement, and distance from Earth strain mood.','Stay in touch with family and crew, and use the daily check-in.',[['Irritable or withdrawn',1],['Feeling low or anxious for several days',2],['Thoughts of harming yourself',3]]],
+['Sleep rhythm','Your body clock that sets sleep and alertness.','Light cycles and schedules in orbit disturb sleep.','Dim lights an hour before bed and keep fixed sleep times.',[['Trouble falling asleep',1],['Very tired despite sleeping',2]]]],
+eyes:[['Cornea and lens','Focus light so you can see sharply.','Dry cabin air and dust irritate the eye surface.','Use lubricating drops if approved and avoid rubbing your eyes.',[['Dry or gritty eyes',1],['Eye pain or injury',3]]],
+['Retina and optic nerve','Turn light into signals for the brain.','Fluid shifts toward the head can swell the optic nerve and blur vision on long missions.','Report any vision change early and do your scheduled eye checks.',[['Blurry vision',2],['Sudden loss of vision or flashes of light',3]]],
+['Eyelids and tear film','Protect and moisten the eye.','Dry air and floating particles cause irritation.','Blink often during screen work and keep the cabin air clean.',[['Red or itchy eyes',1],['Swollen eyelids',2]]]],
+heart:[['Heart muscle','Pumps blood around the body.','Microgravity changes how hard the heart works, and the heart muscle can shrink slightly.','Do daily aerobic exercise and measure heart rate on schedule.',[['Unusual tiredness',1],['Chest pain or pressure',3]]],
+['Blood vessels','Carry blood to every organ.','Blood pressure and vessel behavior change in microgravity.','Stay hydrated and measure blood pressure on schedule.',[['Dizziness when standing up',2],['Fainting',3]]],
+['Heart rhythm','Keeps the heartbeat steady.','Stress, low sleep, and electrolyte changes can disturb rhythm.','Rest, hydrate, and report an irregular pulse.',[['Racing or skipping heartbeat',2],['Fainting with palpitations',3]]]],
+lungs:[['Airways','Carry air in and out.','Dust and cabin particles can irritate the airways.','Keep filters clean and report a cough that does not clear.',[['Dry cough',1],['Wheezing or struggling to breathe',3]]],
+['Air sacs','Pass oxygen into the blood.','Fluid shifts and low gravity change how air spreads in the lungs.','Do breathing and aerobic exercise as scheduled.',[['Breathless on mild effort',2],['Blue lips or severe breathlessness',3]]],
+['Blood oxygen','How much oxygen the blood carries.','High CO\u2082 or poor cabin air can lower it.','Check the cabin air and recheck with a pulse oximeter.',[['Headache with drowsiness',2],['Confusion or a very low oxygen reading',3]]]],
+gut:[['Stomach','Breaks down food.','Space motion sickness and stress can cause nausea.','Move slowly, sip water, and eat small bland meals.',[['Nausea',1],['Repeated vomiting',2]]],
+['Intestines','Absorb nutrients and move waste.','Changed diet and low activity can cause constipation.','Drink water, eat fibre, and move daily.',[['Constipation',1],['Severe abdominal pain',3]]],
+['Pancreas and blood sugar','Makes insulin to control blood sugar.','Stress, sleep loss, and diet changes can shift blood sugar.','Eat regular meals and measure blood sugar when due.',[['Extreme thirst or frequent urination',2],['Shaking, sweating, and confusion',3]]]],
+spine:[['Vertebrae','The bones that protect the spinal cord.','Without gravity the spine lengthens, and bone density can fall.','Do resistance exercise and report persistent back pain.',[['Mild back ache',1],['Back pain with numb legs',3]]],
+['Discs and back muscles','Cushion and support the spine.','Muscles weaken without load, and discs can change shape.','Stretch gently and strengthen your core.',[['Stiff or sore lower back',1],['Pain that keeps getting worse',2]]],
+['Hip bones','Carry your weight on Earth.','Hip bones lose density in microgravity.','Do weight-bearing exercise with the exercise device.',[['Hip or groin pain',2],['Unable to move a hip',3]]]],
+arms:[['Muscles','Let you lift and reach.','Muscles weaken when gravity does not load them.','Use resistance bands every day.',[['Weak or sore muscles',1],['Sudden severe weakness',3]]],
+['Bones','Support the arm.','Arm bones lose less density than leg bones but still need load.','Do resistance training and eat enough calcium.',[['Dull bone ache',1],['Pain after a knock or fall',2]]],
+['Joints and tendons','Let the arm bend and move.','Repetitive work in orbit can strain tendons.','Warm up and rest strained joints.',[['Sore elbow or shoulder',1],['Swollen, hot joint',2]]],
+['Skin','Protects the arm.','Dry air and suit contact can crack or irritate skin.','Moisturise and keep skin clean.',[['Dry or itchy skin',1],['Spreading redness or pus',2]]]],
+hands:[['Skin and nails','Protect the fingers and hands.','Skin becomes thin and cracks easily in orbit, especially on the hands.','Moisturise and wear gloves for rough tasks.',[['Cracked or dry skin',1],['Infected-looking cut',2]]],
+['Muscles and tendons','Give grip and fine control.','Constant gripping and glove use can strain them.','Stretch your hands and fingers between tasks.',[['Sore or tired hands',1],['Finger stuck or locked',2]]],
+['Bones and joints','Make up the fingers and wrist.','Bumps in tight spaces can injure fingers.','Move carefully and report any knock.',[['Swollen finger',2],['Deformed finger or severe pain',3]]],
+['Nerves','Give touch and feeling.','Gloves, posture, and fluid shifts can press on nerves.','Rest the wrist and shake out the hands.',[['Tingling or numb fingers',1],['Numbness that spreads up the arm',3]]]],
+legs:[['Muscles','Power walking and exercise.','Leg muscles weaken quickly in microgravity.','Do treadmill and resistance training daily.',[['Leg weakness',1],['Painful swollen calf',3]]],
+['Bones','Carry body weight on Earth.','Leg bones lose density in microgravity, a main long-mission risk.','Do weight-bearing exercise and follow your doctor advice on calcium and vitamin D.',[['Bone ache',1],['Sudden severe pain',3]]],
+['Knees and ankles','Let the legs bend and absorb impact.','Exercise on hard equipment can strain joints.','Warm up and use correct form.',[['Sore knee or ankle',1],['Swollen, hot joint',2]]],
+['Blood vessels','Return blood to the heart.','Fluid shifts toward the head and slow flow in the legs can raise clot risk.','Move often and stay hydrated.',[['Leg swelling',2],['One leg red, warm, and painful',3]]]],
+feet:[['Skin','Protects the feet.','Foot skin can soften in microgravity because it carries no weight.','Keep feet clean and dry, and check for cracks.',[['Dry or cracked heels',1],['Sore, infected-looking skin',2]]],
+['Bones and joints','Support the arch and ankle.','Foot bones can lose some density, and bumps are common.','Do weight-bearing exercise and protect your feet.',[['Foot ache',1],['Swelling after a knock',2]]],
+['Nerves','Give feeling in the feet.','Pressure from restraints can cause numbness.','Change position and loosen straps.',[['Tingling feet',1],['Numbness that spreads up the leg',3]]]],
+whole:[['Skin','Barrier against germs and the environment.','Dry air, friction, and radiation affect skin.','Moisturise, keep clean, and report rashes.',[['Dry or itchy skin',1],['Rash that spreads or blisters',2]]],
+['Immune system','Fights infection.','Stress and confinement can weaken immunity, and germs spread in closed cabins.','Sleep well, wash hands, and report fever early.',[['Mild sore throat or cold',1],['Fever or chills',2]]],
+['Blood','Carries oxygen and nutrients.','Space can lower red blood cell count a little and raises radiation risk.','Eat iron-rich food as advised and report tiredness.',[['Unusual tiredness',1],['Pale skin with shortness of breath',2]]]]};
+let selS=null;
+function selectPart(p){selP=p;selS=null;paint();$('sinfo').innerHTML='';drawSubs()}
+function drawSubs(){const P=PARTS[selP],S=SUB[selP]||[];$('subs').innerHTML=`<h2>Parts of: ${P.n}</h2><p class="dv">Tap a part for details and a quick check.</p><div class="btns">`+S.map((x,i)=>`<button data-sub="${i}" aria-pressed="${i===selS}">${x[0]}</button>`).join('')+'</div>';
+ $('subs').querySelectorAll('[data-sub]').forEach(b=>b.onclick=()=>{selS=+b.dataset.sub;drawSubs();drawSub()})}
+function drawSub(){const s=(SUB[selP]||[])[selS];if(!s){$('sinfo').innerHTML='';return}
+ $('sinfo').innerHTML=`<div class="card" style="margin:10px 0"><h2>${s[0]}</h2><p class="dv">${s[1]}</p><div class="ind"><b>Space effect:</b> ${s[2]}</div><div class="ind"><b>What helps:</b> ${s[3]}</div><div class="ind"><b>Do you notice any of these?</b>`+s[4].map((y,i)=>`<label class="step"><input type="checkbox" data-y="${i}"> ${y[0]}</label>`).join('')+`<div class="btns"><button id="pchk" class="primary">Check this part</button></div><div id="pres" aria-live="polite"></div></div></div>`;
+ $('pchk').onclick=()=>{const t=[...$('sinfo').querySelectorAll('[data-y]')].filter(x=>x.checked).map(x=>s[4][+x.dataset.y]);earn('dd');const u=t.length?Math.max(...t.map(y=>y[1])):0;
+  $('pres').innerHTML=u==3?'<div class="urg bad">Urgent. Contact the flight surgeon now.</div><button id="pgo">Get medical help</button>':u==2?`<div class="urg warn">Moderate. Report this to the flight surgeon soon.</div><div class="act">${s[3]}</div><button id="pgo">Get medical help</button>`:u==1?`<div class="urg ok">Mild. Try this: ${s[3]} Check again later.</div><button id="pgo">Not better? Get medical help</button>`:`<div class="urg ok">Nothing ticked. To keep it healthy: ${s[3]}</div>`;
+  const g=$('pgo');if(g)g.onclick=()=>$('help').scrollIntoView({behavior:'smooth'})}}
+drawSubs();
+setEnv('station');drawBd();drawRt();
 sync();setInterval(tick,1500);
 </script></body></html>
